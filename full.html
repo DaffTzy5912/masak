@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooking Challenge 🍳</title>
+    <style>
+    /* Gaya Umum */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #ffe5b4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Container Utama */
+.game-container {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Judul */
+h1 {
+    font-size: 24px;
+    color: #ff5722;
+}
+
+/* Informasi Game */
+#recipe, #timer, #score {
+    font-size: 18px;
+    margin: 5px;
+}
+
+/* Area Memasak */
+#cooking-area {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Wajan yang sudah diperbaiki */
+#pan {
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at 50% 50%, #555, #222);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: inset 0px 5px 10px rgba(255, 255, 255, 0.2),
+                0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Efek api di bawah wajan */
+#pan::before {
+    content: "🔥";
+    font-size: 30px;
+    position: absolute;
+    bottom: -20px;
+}
+
+/* Efek saat bahan dimasukkan */
+#pan.dragover {
+    background: red;
+}
+
+/* Animasi saat memasak */
+@keyframes cookingEffect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); background: #ff7043; }
+    100% { transform: scale(1); }
+}
+
+.cooking {
+    animation: cookingEffect 0.5s;
+}
+
+/* Kontainer Bahan */
+#ingredients-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Bahan Masakan yang lebih responsif */
+.ingredient {
+    padding: 10px 15px;
+    background: #ffcc00;
+    border-radius: 10px;
+    cursor: grab;
+    font-size: 16px;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Efek hover bahan */
+.ingredient:hover {
+    transform: scale(1.1);
+}
+
+/* Efek saat bahan disentuh */
+.ingredient:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+/* Tombol Restart yang lebih modern */
+#restart {
+    background: linear-gradient(45deg, #ff6b6b, #ff3d3d);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-top: 10px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, background 0.3s ease;
+}
+
+/* Hover tombol Restart */
+#restart:hover {
+    transform: scale(1.1);
+    background: linear-gradient(45deg, #ff3d3d, #ff0000);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .game-container {
+        max-width: 90%;
+    }
+    .ingredient {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    #pan {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+@keyframes fireEffect {
+    0% { box-shadow: 0 0 10px rgba(255, 100, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 50, 0, 1); }
+    100% { box-shadow: 0 0 10px rgba(255, 100, 0, 0.5); }
+}
+
+#pan.cooking {
+    animation: cookingEffect 0.5s, fireEffect 0.8s infinite alternate;
+}
+
+#smoke {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 20px;
+    background: rgba(200, 200, 200, 0.5);
+    border-radius: 50%;
+    opacity: 0;
+}
+
+@keyframes smokeEffect {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-40px) scale(1.5); }
+}
+
+#smoke.active {
+    animation: smokeEffect 1s forwards;
+}
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>🍳 Cooking Challenge</h1>
+        <p id="recipe">Resep: <span id="recipe-name"></span></p>
+        <p id="timer">⏳ Waktu: <span id="time">30</span>s</p>
+        <p id="score">⭐ Skor: <span id="score-value">0</span></p>
+        
+        <div id="cooking-area">
+            <div id="pan">
+                <div id="fire"></div>
+                <div id="smoke"></div>
+            </div>
+        </div>
+
+        <div id="ingredients-container">
+            <p>🔍 Bahan akan muncul di sini...</p>
+        </div>
+
+        <button id="restart">🔄 Restart</button>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const recipes = [
+        { name: "Nasi Goreng", ingredients: ["🍚", "🥚", "Kecap", "Garam"] },
+        { name: "Mie Goreng", ingredients: ["🍜", "🥚", "Kecap", "🧄"] },
+        { name: "Omelet", ingredients: ["🥚", "🧂", "🧀", "Merica"] }
+    ];
+
+    let selectedRecipe;
+    let currentStep = 0;
+    let score = 0;
+    let timeLeft = 30;
+    let timer;
+
+    const recipeNameElement = document.getElementById("recipe-name");
+    const ingredientsContainer = document.getElementById("ingredients-container");
+    const pan = document.getElementById("pan");
+    const scoreElement = document.getElementById("score-value");
+    const timeElement = document.getElementById("time");
+    const restartButton = document.getElementById("restart");
+
+    function startGame() {
+        selectedRecipe = recipes[Math.floor(Math.random() * recipes.length)];
+        recipeNameElement.textContent = selectedRecipe.name;
+        ingredientsContainer.innerHTML = "";
+        currentStep = 0;
+        score = 0;
+        scoreElement.textContent = score;
+        timeLeft = 30;
+        timeElement.textContent = timeLeft;
+
+        shuffleArray(selectedRecipe.ingredients).forEach((ingredient) => {
+            const ingredientElement = document.createElement("div");
+            ingredientElement.textContent = ingredient;
+            ingredientElement.classList.add("ingredient");
+
+            // Drag Event (Mouse)
+            ingredientElement.draggable = true;
+            ingredientElement.addEventListener("dragstart", (event) => {
+                event.dataTransfer.setData("text", ingredient);
+            });
+
+            // Touch Event (HP/Tablet)
+            ingredientElement.addEventListener("touchstart", (event) => {
+                let touch = event.touches[0];
+                event.target.classList.add("dragging");
+                event.target.dataset.startX = touch.clientX;
+                event.target.dataset.startY = touch.clientY;
+            });
+
+            ingredientElement.addEventListener("touchmove", (event) => {
+                let touch = event.touches[0];
+                event.target.style.position = "absolute";
+                event.target.style.left = `${touch.clientX - 50}px`;
+                event.target.style.top = `${touch.clientY - 50}px`;
+            });
+
+            ingredientElement.addEventListener("touchend", (event) => {
+                let touch = event.changedTouches[0];
+                let panRect = pan.getBoundingClientRect();
+                let ingredientText = event.target.textContent; 
+
+                // Cek jika bahan dilepas di atas wajan
+                if (touch.clientX >= panRect.left && touch.clientX <= panRect.right &&
+                    touch.clientY >= panRect.top && touch.clientY <= panRect.bottom) {
+                    checkIngredient(ingredientText);
+                    event.target.remove();
+                } else {
+                    // Reset ke posisi awal
+                    event.target.style.position = "static";
+                }
+
+                event.target.classList.remove("dragging");
+            });
+
+            ingredientsContainer.appendChild(ingredientElement);
+        });
+
+        clearInterval(timer);
+        timer = setInterval(updateTimer, 1000);
+    }
+
+    function checkIngredient(ingredient) {
+        if (ingredient === selectedRecipe.ingredients[currentStep]) {
+            pan.classList.add("cooking");
+            showSmoke(); // Efek asap
+            setTimeout(() => pan.classList.remove("cooking"), 500);
+            currentStep++;
+            score += 10;
+            scoreElement.textContent = score;
+
+            if (currentStep === selectedRecipe.ingredients.length) {
+                clearInterval(timer);
+                showMessage(`✅ Masakan Selesai! Skor: ${score}`);
+                setTimeout(startGame, 2000);
+            }
+        } else {
+            pan.classList.add("wrong");
+            setTimeout(() => pan.classList.remove("wrong"), 300);
+            showMessage("❌ Salah urutan! Coba lagi.");
+            score -= 5;
+            if (score < 0) score = 0;
+            scoreElement.textContent = score;
+        }
+    }
+
+    function updateTimer() {
+        timeLeft--;
+        timeElement.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            showMessage("⏳ Waktu habis! Coba lagi.");
+            setTimeout(startGame, 2000);
+        }
+    }
+
+    function shuffleArray(array) {
+        let shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    function showMessage(msg) {
+        const messageBox = document.createElement("div");
+        messageBox.textContent = msg;
+        messageBox.style.position = "fixed";
+        messageBox.style.top = "50%";
+        messageBox.style.left = "50%";
+        messageBox.style.transform = "translate(-50%, -50%)";
+        messageBox.style.background = "rgba(0,0,0,0.8)";
+        messageBox.style.color = "white";
+        messageBox.style.padding = "15px 30px";
+        messageBox.style.borderRadius = "10px";
+        messageBox.style.fontSize = "20px";
+        messageBox.style.zIndex = "1000";
+
+        document.body.appendChild(messageBox);
+
+        setTimeout(() => {
+            messageBox.remove();
+        }, 1500);
+    }
+
+    // Drag & Drop ke wajan (Mouse)
+    pan.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        pan.classList.add("dragover");
+    });
+
+    pan.addEventListener("dragleave", () => {
+        pan.classList.remove("dragover");
+    });
+
+    pan.addEventListener("drop", (event) => {
+        event.preventDefault();
+        pan.classList.remove("dragover");
+        const ingredient = event.dataTransfer.getData("text");
+        checkIngredient(ingredient);
+    });
+
+    restartButton.addEventListener("click", startGame);
+
+    function showSmoke() {
+        const smoke = document.getElementById("smoke");
+        if (smoke) {
+            smoke.classList.add("active");
+            setTimeout(() => smoke.classList.remove("active"), 1000);
+        }
+    }
+
+    startGame();
+});
+    </script>
+</body>
+</html>

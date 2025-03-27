@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooking Challenge 🍳</title>
+    <style>
+    body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #ff9966, #ff5e62);
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.home-container {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 80%;
+    max-width: 400px;
+}
+
+.game-title {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.game-description {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.recipe-title {
+    font-size: 22px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.recipe-book {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.recipe {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.recipe:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+#start-button {
+    background: #ffcc00;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#start-button:hover {
+    background: #ffdd44;
+    transform: scale(1.05);
+}
+    </style>
+</head>
+<body>
+
+    <div class="home-container">
+        <h1 class="game-title">Cooking Challenge 🍳</h1>
+        <p class="game-description">Masak dengan urutan yang benar dan raih skor tertinggi!</p>
+
+        <h2 class="recipe-title">📖 Hafalkan resepnya ya!</h2>
+        <div class="recipe-book">
+            <div class="recipe">
+                <h3>Nasi Goreng 🍚</h3>
+                <p>Bahan: 🍚 Nasi, 🥚 Telur, Kecap, Garam</p>
+            </div>
+            <div class="recipe">
+                <h3>Mie Goreng 🍜</h3>
+                <p>Bahan: 🍜 Mie, 🥚 Telur, Kecap, 🧄 Bawang</p>
+            </div>
+            <div class="recipe">
+                <h3>Omelet 🥚</h3>
+                <p>Bahan: 🥚 Telur, 🧂 Garam, 🧀 Keju, Merica</p>
+            </div>
+        </div>
+
+        <button id="start-button">Mulai Memasak</button>
+    </div>
+
+    <script>
+        document.getElementById("start-button").addEventListener("click", () => {
+            window.location.href = "game.html"; // Masuk ke area masak
+        });
+    </script>
+
+</body>
+</html>
